@@ -27,7 +27,7 @@ class Player(Bot):
         Nothing.
         '''
     
-    def calc_strength(self, hole, iters):
+    def calc_strength(self, hole, round_state, iters):
         '''
         A Monte carlo method that estimates the win probability of a pair of hole cards 
 
@@ -39,21 +39,32 @@ class Player(Bot):
         deck = eval7.Deck() #deck of cards
         hole_cards = [eval7.Card(card) for card in hole] #list of our hole cards
 
+        street = round_state.street
+        _board_cards = round_state.deck[:street]
+        board_cards = [eval7.Card(card) for card in _board_cards]
+
         for card in hole_cards:
             deck.cards.remove(card)
+
+        for card in board_cards:
+            deck.cards.removed(card)
 
         score = 0
 
         for _ in range(iters):
             deck.shuffle()
 
-            _COMM = 5 
             _OPP = 2
 
+            if street<3:
+                _COMM = 5
+            else:
+                _COMM = 5 - street
+            
             draw = deck.peek(_COMM+_OPP)
 
             opp_hole = draw[:_OPP]
-            community = draw[_OPP:]
+            community = draw[_OPP:] + extend(board_cards)
 
             our_hand = hole_cards + community
             opp_hand = opp_hole + community
